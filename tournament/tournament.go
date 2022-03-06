@@ -51,13 +51,16 @@ func Tally(reader io.Reader, writer io.Writer) error {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		game := strings.Split(scanner.Text(), ";")
-		// need to do some data validation and error checking here
-		if len(game) != 3 {
-			return errors.New("Invalid game format.")
+		if len(game) == 1 && game[0] == "" {
+			continue
+		} else if len(game) > 0 && strings.HasPrefix(game[0], "#") {
+			continue
+		} else if len(game) != 3 {
+			return errors.New("invalid game format")
 		} else if !validGameOutcome(game[2]) {
-			return errors.New("Not a valid game outcome.")
+			return errors.New("not a valid game outcome")
 		} else if game[0] == game[1] {
-			return errors.New("Team 1 cannot be the same as Team 2.")
+			return errors.New("team 1 cannot be the same as Team 2")
 		} else {
 			analyseGame(game, teamScoreMap)
 		}
@@ -136,7 +139,12 @@ func getSortedTeamKeys(teams map[string]*teamScore) []string {
 	for team := range teams {
 		orderedTeams = append(orderedTeams, team)
 	}
-	sort.Slice(orderedTeams, func(i, j int) bool { return teams[orderedTeams[i]].points > teams[orderedTeams[j]].points })
+	sort.Slice(orderedTeams, func(i, j int) bool {
+		if teams[orderedTeams[i]].points == teams[orderedTeams[j]].points {
+			return teams[orderedTeams[i]].team < teams[orderedTeams[j]].team
+		}
+		return teams[orderedTeams[i]].points > teams[orderedTeams[j]].points
+	})
 
 	return orderedTeams
 }
