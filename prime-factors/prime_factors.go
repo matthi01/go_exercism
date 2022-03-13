@@ -2,40 +2,36 @@
 package prime
 
 // Factors calculates the prime factors of a given number
-func Factors(n int64) []int64 {
+func Factors(n int64) (factors []int64) {
+	primes := findPrimes(n)
 	remainder := n
-	var factors []int64
-	var counter int64 = 2
-	for remainder >= counter {
-		if remainder%counter == 0 {
-			factors = append(factors, counter)
-			remainder = remainder / counter
+	for i := 0; i < len(primes); {
+		prime := primes[i]
+		if remainder%prime == 0 {
+			factors = append(factors, prime)
+			remainder = remainder / prime
 			continue
 		}
-		counter = nextPrime(counter)
+		i++
 	}
 	return factors
 }
 
-func isPrime(n int64) bool {
-	if n < 2 {
-		return false
-	}
+func findPrimes(limit int64) (primes []int64) {
+	arr := make([]bool, limit)
 	var i int64
-	for i = 2; i < n; i++ {
-		if n%i == 0 {
-			return false
+	var j int64
+	if limit == 2 {
+		return []int64{2}
+	}
+	for i = 2; i < limit; i++ {
+		if arr[i] == true {
+			continue
+		}
+		primes = append(primes, i)
+		for j = i * i; j < limit; j += i {
+			arr[j] = true
 		}
 	}
-	return true
-}
-
-func nextPrime(n int64) int64 {
-	var next int64 = n + 1
-	for {
-		if isPrime(next) {
-			return next
-		}
-		next++
-	}
+	return primes
 }
