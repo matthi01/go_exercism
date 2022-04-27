@@ -1,79 +1,130 @@
 package matrix
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 )
 
-// Matrix is the entire matrix
-// type Matrix []Rows
+type Matrix [][]int
 
-// Pair specifies a location in the matrix
 type Pair struct {
-	col, row int
+	x int
+	y int
 }
 
-type Column []int
-type Row []int
-type Matrix []Row
-
-// New also still requires a comment
 func New(s string) (*Matrix, error) {
-	strRows := strings.Split(s, "\n")
-	// fmt.Println("original:", s)
-	// fmt.Println("rows", strRows)
-	// var m Matrix
-	var r Matrix
-	for _, tr := range strRows {
-		var c Column
-		for _, tc := range tr {
-			n, err := strconv.Atoi(string(tc))
+	rows := strings.Split(s, "\n")
+	var matrixLength = 0
+	var matrixHeight = len(rows)
+	var newMatrix = make(Matrix, matrixHeight)
+
+	for rowIndex, row := range rows {
+		trimmedRow := strings.TrimSpace(row)
+		columnCells := strings.Split(trimmedRow, " ")
+		if matrixLength == 0 {
+			matrixLength = len(columnCells)
+		}
+		if matrixLength != len(columnCells) {
+			return &Matrix{}, errors.New("uneven column lengths")
+		}
+
+		newMatrix[rowIndex] = make([]int, matrixLength)
+		for columnIndex, strCellValue := range columnCells {
+			cellValue, err := strconv.Atoi(strCellValue)
 			if err != nil {
+				return &Matrix{}, err
+			}
+			newMatrix[rowIndex][columnIndex] = cellValue
+		}
+	}
+	return &newMatrix, nil
+}
+
+func (m *Matrix) Set(row, column, value int) bool {
+	if row < 0 || column < 0 {
+		return false
+	}
+	nRows := len(*m)
+	nColumns := len((*m)[0])
+	if row > nRows-1 || column > nColumns-1 {
+		return false
+	}
+	(*m)[row][column] = value
+	return true
+}
+
+func (m Matrix) Cols() [][]int {
+	nColumns := len(m[0])
+	nRows := len(m)
+	mCopy := make(Matrix, nColumns)
+	for i := range mCopy {
+		mCopy[i] = make([]int, nRows)
+	}
+	for ri, row := range mCopy {
+		for ci := range row {
+			mCopy[ri][ci] = m[ci][ri]
+		}
+	}
+	return mCopy
+}
+
+func (m Matrix) Rows() [][]int {
+	mCopy := make(Matrix, len(m))
+	for ri, columns := range m {
+		mCopy[ri] = make([]int, len(columns))
+		copy(mCopy[ri], m[ri])
+	}
+	return mCopy
+}
+
+func (m Matrix) Column(c int) []int {
+	columns := m.Cols()
+	return columns[c]
+}
+
+func (m Matrix) Row(r int) []int {
+	rows := m.Rows()
+	return rows[r]
+}
+
+/*
+	Saddle Point:
+	- greater than or equal to every element in its row
+	- less than or equal to every element in its column
+*/
+func (m *Matrix) Saddle() []Pair {
+	var pairs []Pair
+	for ri, row := range *m {
+		for ci, cellValue := range row {
+			var isSaddlePoint = true
+			row := m.Row(ri)
+			column := m.Column(ci)
+
+			for _, rowValue := range row {
+				if cellValue < rowValue {
+					isSaddlePoint = false
+					break
+				}
+			}
+
+			if !isSaddlePoint {
 				continue
 			}
-			c = append(c, n)
-		}
-		// fmt.Println("c:", c)
-		r = append(r, c)
-	}
-	// m = rows
-	// fmt.Println(r)
-	return &r, nil
-}
 
-// Saddle still needs a comment...
-func (m *Matrix) Saddle() []Pair {
-	fmt.Println("matrix:", *m)
-	var saddlePairs []Pair
+			for _, columnValue := range column {
+				if cellValue > columnValue {
+					isSaddlePoint = false
+					break
+				}
+			}
 
-	for ri, row := range *m {
-		fmt.Println("row:", row)
-		fmt.Println("ri:", ri)
-		for ci, col := range row {
-			fmt.Println("col:", col)
-			fmt.Println("ci:", ci)
+			if !isSaddlePoint {
+				continue
+			}
+
+			pairs = append(pairs, Pair{ri, ci})
 		}
 	}
-
-	return saddlePairs
-}
-
-// Sum returns the sum of any given number of integers
-func Sum(ns ...int) int {
-	var sum int
-	for _, n := range ns {
-		sum += n
-	}
-	return sum
-}
-
-// RowSum needs a comment
-func RowSum(r Row) int {
-	return 0
-}
-
-// ColumnSum needs a comment
-func ColumnSum() int {
-	return 0
+	return pairs
 }

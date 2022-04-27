@@ -12,15 +12,11 @@ var tests = []struct {
 	m  string
 	sp []Pair
 }{
-	// {"2 1\n1 2", nil},
-	// {"1 2\n3 4", []Pair{{0, 1}}},
+	{"2 1\n1 2", nil},
+	{"1 2\n3 4", []Pair{{0, 1}}},
 	{"18 3 39 19 91\n38 10 8 77 320\n3 4 8 6 7", []Pair{{2, 2}}},
 	{"4 5 4\n3 5 5\n1 5 4", []Pair{{0, 1}, {1, 1}, {2, 1}}},
 }
-
-// 18 	3 	39 	19 	91
-// 38 	10 	8 	77 	320
-// 3 	4 	8 	6 	7
 
 func TestSaddle(t *testing.T) {
 	for _, test := range tests {
