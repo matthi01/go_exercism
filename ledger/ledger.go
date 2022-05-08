@@ -14,13 +14,15 @@ type Entry struct {
 
 func FormatLedger(currency string, locale string, entries []Entry) (string, error) {
 	var entriesCopy []Entry
-	for _, e := range entries {
-		entriesCopy = append(entriesCopy, e)
-	}
+	// should probably check length of entries first before ranging over it
 	if len(entries) == 0 {
+		// why the recursive call?
 		if _, err := FormatLedger(currency, "en-US", []Entry{{Date: "2014-01-01", Description: "", Change: 0}}); err != nil {
 			return "", err
 		}
+	}
+	for _, e := range entries {
+		entriesCopy = append(entriesCopy, e)
 	}
 	m1 := map[bool]int{true: 0, false: 1}
 	m2 := map[bool]int{true: -1, false: 1}
