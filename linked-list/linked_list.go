@@ -5,15 +5,15 @@ import (
 	"fmt"
 )
 
-// Define List and Node types here.
-type List struct {
-	head *Node
-	tail *Node
-}
 type Node struct {
 	Value interface{}
 	prev  *Node
 	next  *Node
+}
+
+type List struct {
+	head *Node
+	tail *Node
 }
 
 var (
@@ -21,14 +21,11 @@ var (
 )
 
 func NewList(args ...interface{}) *List {
-	newList := &List{head: nil, tail: nil}
-	for _, v := range args {
-		fmt.Println("push...", v)
-		newList.PushBack(v)
+	list := &List{}
+	for _, item := range args {
+		list.PushBack(item)
 	}
-	fmt.Println("first:", newList.First().Value)
-	fmt.Println("last:", newList.Last().Value)
-	return newList
+	return list
 }
 
 func (n *Node) Next() *Node {
@@ -40,60 +37,83 @@ func (n *Node) Prev() *Node {
 }
 
 func (l *List) PushFront(v interface{}) {
-	newNode := Node{
+	newNode := &Node{
 		Value: v,
-		next:  l.First(),
+		next:  nil,
 		prev:  nil,
 	}
-	// if new list
-	if l.head == nil && l.tail == nil {
-		fmt.Println("found new list")
-		l.head = &newNode
-		l.tail = &newNode
-		return
+	if l.IsEmpty() {
+		l.head = newNode
+		l.tail = newNode
+	} else {
+		originalHead := l.head
+		originalHead.prev = newNode
+		newNode.next = originalHead
 	}
-	fmt.Println("adding to list")
-	newNode.prev = l.head
-	l.head = &newNode
+	l.head = newNode
 }
 
 func (l *List) PushBack(v interface{}) {
-	newNode := Node{
+	newNode := &Node{
 		Value: v,
 		next:  nil,
-		prev:  l.Last(),
+		prev:  nil,
 	}
-	if l.head == nil && l.tail == nil {
-		fmt.Println("found new list")
-		l.head = &newNode
-		l.tail = &newNode
-		return
+	if l.IsEmpty() {
+		l.head = newNode
+		l.tail = newNode
+	} else {
+		originalTail := l.tail
+		originalTail.next = newNode
+		newNode.prev = originalTail
 	}
-	fmt.Println("adding to list")
-	newNode.next = l.tail
-	l.tail = &newNode
+	l.tail = newNode
 }
 
 func (l *List) PopFront() (interface{}, error) {
-	if l.head == nil {
-		return "", ErrEmptyList
+	if l.IsEmpty() {
+		return nil, ErrEmptyList
 	}
-	poppedNode := l.head
-	poppedNode.prev = nil
-	return poppedNode.Value, nil
+	if l.head == l.tail {
+		// last item in list
+		item := l.head.Value
+		l.head = nil
+		l.tail = nil
+		return item, nil
+	}
+	oldHead := l.First()
+	newHead := oldHead.next
+	newHead.prev = nil
+	l.head = newHead
+	return oldHead.Value, nil
 }
 
 func (l *List) PopBack() (interface{}, error) {
-	if l.tail == nil {
-		return "", ErrEmptyList
+	if l.IsEmpty() {
+		return nil, ErrEmptyList
 	}
-	poppedNode := l.tail
-	poppedNode.next = nil
-	return poppedNode.Value, nil
+	if l.head == l.tail {
+		// last item in list
+		item := l.head.Value
+		l.head = nil
+		l.tail = nil
+		return item, nil
+	}
+	oldTail := l.Last()
+	newTail := oldTail.prev
+	newTail.next = nil
+	l.tail = newTail
+	return oldTail.Value, nil
 }
 
 func (l *List) Reverse() {
-	panic("Please implement the Reverse function")
+	reversedList := NewList()
+	item := l.First()
+	for item != nil {
+		reversedList.PushFront(item.Value)
+		item = item.next
+	}
+	*l = *reversedList
 }
 
 func (l *List) First() *Node {
@@ -102,4 +122,16 @@ func (l *List) First() *Node {
 
 func (l *List) Last() *Node {
 	return l.tail
+}
+
+func (l *List) IsEmpty() bool {
+	return l.head == nil && l.tail == nil
+}
+
+func (l *List) Print() {
+	node := l.First()
+	for node != nil {
+		fmt.Println(node.Value)
+		node = node.next
+	}
 }
