@@ -1,49 +1,50 @@
 package atbash
 
-var alphabet = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
+import (
+	"strings"
+)
 
-// var encodedAlphabet = []rune{'','','','','','','','','','','','','','','','','','','','','','','d','c','b','a',}
+const (
+	exclusions = "#$%^&,!. "
+	alphabet   = "abcdefghijklmnopqrstuvwxyz"
+	groupSize  = 5
+)
 
 func Atbash(s string) string {
-	// fmt.Println("#####")
-	// fmt.Println("input:", s)
-	// fmt.Println("alphabet:", alphabet)
-	// fmt.Println("reverse:", reverseRuneSlice(alphabet))
-	// fmt.Println("alphabet:", alphabet)
-
-	var encoded string
-
-	var reversedAlphabet = reverseRuneSlice(alphabet)
-
+	var cleanedString string
 	for _, r := range s {
-		if index, ok := findIndex(alphabet, r); ok {
-			encodedRune := reversedAlphabet[index]
-			encoded += string(encodedRune)
+		if strings.Contains(exclusions, string(r)) {
 			continue
 		}
-		encoded += string(r)
+		cleanedString += string(r)
 	}
-	return encoded
+	cleanedString = strings.ToLower(cleanedString)
+
+	var encryptedString string
+	for _, r := range cleanedString {
+		index := findIndex(string(r), string(alphabet))
+		if index > -1 {
+			encryptedString += string(alphabet[len(alphabet)-1-index])
+			continue
+		}
+		encryptedString += string(r)
+	}
+
+	var grouped string
+	for i, r := range encryptedString {
+		if i != 0 && i%groupSize == 0 {
+			grouped += " "
+		}
+		grouped += string(r)
+	}
+	return grouped
 }
 
-func reverseRuneSlice(sr []rune) []rune {
-	var newSr = make([]rune, len(sr))
-	copy(newSr, sr)
-	for i, j := 0, len(newSr)-1; i < j; i, j = i+1, j-1 {
-		newSr[i], newSr[j] = newSr[j], newSr[i]
-	}
-	return newSr
-}
-
-func findIndex(sr []rune, value rune) (int, bool) {
-	var index int
-	var ok bool
-	for i, r := range sr {
-		if r == value {
-			index = i
-			ok = true
-			break
+func findIndex(item, searchString string) int {
+	for i, r := range searchString {
+		if item == string(r) {
+			return i
 		}
 	}
-	return index, ok
+	return -1
 }
